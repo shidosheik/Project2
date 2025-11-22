@@ -4,10 +4,11 @@ using System.IO;
 
 
     /// <summary>
-    /// Helpers for Project 2.3:
-    /// - Read AS2015.txt / AS2021.txt
-    /// - Count Enterprise / Content / Transit/Access
-    /// - (Optionally) compare CAIDA types to our inferred types from Graph 4
+    /// Helpers for Project 2.3 (CAIDA comparison):
+    ///  - Read AS2015.txt / AS2021.txt CAIDA classification files.
+    ///  - Produce Enterprise / Content / Transit/Access counts.
+    ///  - Optionally compare CAIDA classes to our inferred types
+    ///    from Graph 4 in Section 2.2 (relationship-based classification).
     /// </summary>
     public static class CaidaClassificationStats
     {
@@ -133,8 +134,12 @@ using System.IO;
         }
 
         /// <summary>
-        /// Compare our inferred Graph-4 classification to CAIDA classes for 2021.
-        /// Assumes Program.ASNode.Classification is set to "Enterprise", "Content", or "Transit".
+        /// Compare our inferred Graph-4 classification from Section 2.2
+        /// ("Enterprise", "Content", "Transit" as stored in ASNode.Classification)
+        /// against CAIDA classes (Enterprise/Content/Transit/Access) for 2021.
+        /// 
+        /// Only ASes that are present and classified in both datasets and that
+        /// map to a non-Unknown CAIDA class are counted.
         /// </summary>
         public static void CompareWithInferred(
             Dictionary<int, ASNode> inferredNodes,
