@@ -137,7 +137,7 @@ using System.IO;
         /// Assumes Program.ASNode.Classification is set to "Enterprise", "Content", or "Transit".
         /// </summary>
         public static void CompareWithInferred(
-            Dictionary<int, Program.ASNode> inferredNodes,
+            Dictionary<int, ASNode> inferredNodes,
             Dictionary<int, CaidaClass> caidaMap,
             out int commonAses,
             out int agree,
@@ -152,13 +152,15 @@ using System.IO;
                 int asn = kvp.Key;
                 var node = kvp.Value;
 
-                if (string.IsNullOrEmpty(node.Classification))
+                string cls = node.Classification;
+
+                if (string.IsNullOrWhiteSpace(cls))
                     continue;
 
                 if (!caidaMap.TryGetValue(asn, out var caidaClass))
                     continue;
 
-                var inferred = MapInferredToCaida(node.Classification);
+                var inferred = MapInferredToCaida(cls);
 
                 if (inferred == CaidaClass.Unknown || caidaClass == CaidaClass.Unknown)
                     continue;
@@ -171,6 +173,7 @@ using System.IO;
                     disagree++;
             }
         }
+
 
         private static CaidaClass MapInferredToCaida(string classification)
         {

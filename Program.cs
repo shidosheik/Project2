@@ -11,8 +11,8 @@ class Program
         string pfx2asPath   = @"C:\Users\david\OneDrive\Documents\ECE Masters\578\Project 2\Project2\data\routeviews-rv2-20251110-1200.pfx2as";
         string outputPath   = @"C:\Users\david\OneDrive\Documents\ECE Masters\578\Project 2\Project2\data\ASDegreesAndIpSpace.csv";
         // Paths for CAIDA classification files (2.3)
-        string as2015Path = @"C:\Users\david\OneDrive\Documents\ECE Masters\578\Project 2\AS2015.txt";
-        string as2021Path = @"C:\Users\david\OneDrive\Documents\ECE Masters\578\Project 2\AS2021.txt";
+        string as2015Path = @"C:\Users\david\OneDrive\Documents\ECE Masters\578\Project 2\Project2\data\AS2015.txt";
+        string as2021Path = @"C:\Users\david\OneDrive\Documents\ECE Masters\578\Project 2\Project2\data\AS2021.txt";
 
 
         var nodes = new Dictionary<int, ASNode>();
