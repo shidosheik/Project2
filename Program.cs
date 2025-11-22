@@ -14,6 +14,12 @@ class Program
         string as2015Path = @"C:\Users\david\OneDrive\Documents\ECE Masters\578\Project 2\Project2\data\AS2015.txt";
         string as2021Path = @"C:\Users\david\OneDrive\Documents\ECE Masters\578\Project 2\Project2\data\AS2021.txt";
 
+        string dataDir = Path.GetDirectoryName(outputPath) ?? Directory.GetCurrentDirectory();
+        string caidaSummaryCsvPath = Path.Combine(dataDir, "CAIDA_Summary.csv");
+        string comparisonCsvPath   = Path.Combine(dataDir, "Section2_3_Comparison.csv");
+        string tier1BasicCsvPath   = Path.Combine(dataDir, "Tier1Clique_Basic.csv");
+        string tier1GrownCsvPath   = Path.Combine(dataDir, "Tier1Clique_Grown.csv");
+
 
         var nodes = new Dictionary<int, ASNode>();
 
@@ -67,6 +73,13 @@ class Program
             CaidaClassificationStats.PrintSummary("2015", counts2015);
             CaidaClassificationStats.PrintSummary("2021", counts2021);
 
+            using (var caidaWriter = new StreamWriter(caidaSummaryCsvPath, append: false))
+            {
+                caidaWriter.WriteLine("Label,Total,Enterprise,Content,TransitAccess,EnterprisePct,ContentPct,TransitAccessPct");
+                WriteCaidaSummaryRow(caidaWriter, "2015", counts2015);
+                WriteCaidaSummaryRow(caidaWriter, "2021", counts2021);
+            }
+
             var caida2021Map = CaidaClassificationStats.LoadMap(as2021Path);
 
             CaidaClassificationStats.CompareWithInferred(
@@ -82,6 +95,17 @@ class Program
             {
                 Console.WriteLine($"Agree:      {agree} ({agree * 100.0 / commonAses:F2}%)");
                 Console.WriteLine($"Disagree:   {disagree} ({disagree * 100.0 / commonAses:F2}%)");
+            }
+
+            using (var comparisonWriter = new StreamWriter(comparisonCsvPath, append: false))
+            {
+                comparisonWriter.WriteLine("CommonAses,Agree,Disagree,AgreePct,DisagreePct");
+
+                double agreePct    = commonAses > 0 ? agree    * 100.0 / commonAses : 0.0;
+                double disagreePct = commonAses > 0 ? disagree * 100.0 / commonAses : 0.0;
+
+                comparisonWriter.WriteLine(
+                    $"{commonAses},{agree},{disagree},{agreePct:F2},{disagreePct:F2}");
             }
 
             // ---------- Tier-1 inference via clique heuristic ----------
@@ -109,10 +133,48 @@ class Program
                 var node = nodes[asn];
                 Console.WriteLine($"{i + 1}. AS{asn}  (degree = {node.GlobalDegree})");
             }
+
+            using (var basicWriter = new StreamWriter(tier1BasicCsvPath, append: false))
+            {
+                basicWriter.WriteLine("Rank,Asn,GlobalDegree");
+                for (int i = 0; i < tier1Basic.Count; i++)
+                {
+                    int asn = tier1Basic[i];
+                    var node = nodes[asn];
+                    basicWriter.WriteLine($"{i + 1},{asn},{node.GlobalDegree}");
+                }
+            }
+
+            // NEW: dump full grown clique to CSV
+            using (var grownWriter = new StreamWriter(tier1GrownCsvPath, append: false))
+            {
+                grownWriter.WriteLine("Rank,Asn,GlobalDegree");
+                for (int i = 0; i < tier1Grown.Count; i++)
+                {
+                    int asn = tier1Grown[i];
+                    var node = nodes[asn];
+                    grownWriter.WriteLine($"{i + 1},{asn},{node.GlobalDegree}");
+                }
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error: {ex.Message}");
         }
     }
+
+    private static void WriteCaidaSummaryRow(
+        StreamWriter writer,
+        string label,
+        CaidaClassificationStats.Counts c)
+    {
+        double enterprisePct = c.Total > 0 ? c.Enterprise    * 100.0 / c.Total : 0.0;
+        double contentPct    = c.Total > 0 ? c.Content       * 100.0 / c.Total : 0.0;
+        double transitPct    = c.Total > 0 ? c.TransitAccess * 100.0 / c.Total : 0.0;
+
+        writer.WriteLine(
+            $"{label},{c.Total},{c.Enterprise},{c.Content},{c.TransitAccess}," +
+            $"{enterprisePct:F6},{contentPct:F6},{transitPct:F6}");
+    }
+
 }
