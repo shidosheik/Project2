@@ -58,7 +58,7 @@ class Program
             ASGraph.WriteCsv(outputPath, nodes);
             Console.WriteLine($"\nCSV written to: {outputPath}");
 
-            // ---------- Section 2.3: CAIDA classification statistics ----------
+            // ---------- CAIDA classification statistics ----------
 
             // 2015 & 2021 raw CAIDA counts
             var counts2015 = CaidaClassificationStats.LoadCounts(as2015Path);
@@ -67,7 +67,6 @@ class Program
             CaidaClassificationStats.PrintSummary("2015", counts2015);
             CaidaClassificationStats.PrintSummary("2021", counts2021);
 
-            // Optional: compare our inferred 2021 types (Graph 4) to CAIDA 2021
             var caida2021Map = CaidaClassificationStats.LoadMap(as2021Path);
 
             CaidaClassificationStats.CompareWithInferred(
@@ -83,6 +82,32 @@ class Program
             {
                 Console.WriteLine($"Agree:      {agree} ({agree * 100.0 / commonAses:F2}%)");
                 Console.WriteLine($"Disagree:   {disagree} ({disagree * 100.0 / commonAses:F2}%)");
+            }
+
+            // ---------- Tier-1 inference via clique heuristic ----------
+
+           // Step 1: basic greedy clique (exactly as described in the bullets)
+            var tier1Basic = Tier1Finder.FindTier1CliqueBasic(nodes);
+
+            Console.WriteLine("\n--- 2.3 Tier-1 clique ( greedy heuristic) ---");
+            Console.WriteLine($"Clique size |S| : {tier1Basic.Count}");
+            for (int i = 0; i < Math.Min(10, tier1Basic.Count); i++)
+            {
+                int asn = tier1Basic[i];
+                var node = nodes[asn];
+                Console.WriteLine($"{i + 1}. AS{asn}  (degree = {node.GlobalDegree})");
+            }
+
+            // Optional Step 2: apply the Note to try to get at least 10 nodes
+            var tier1Grown = Tier1Finder.GrowCliqueIfSmall(nodes, desiredMinSize: 10, maxRankToInspect: 50);
+
+            Console.WriteLine("\n--- 2.3 Tier-1 clique after applying Note (top 50) ---");
+            Console.WriteLine($"Clique size |S| (grown): {tier1Grown.Count}");
+            for (int i = 0; i < Math.Min(10, tier1Grown.Count); i++)
+            {
+                int asn = tier1Grown[i];
+                var node = nodes[asn];
+                Console.WriteLine($"{i + 1}. AS{asn}  (degree = {node.GlobalDegree})");
             }
         }
         catch (Exception ex)
